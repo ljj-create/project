@@ -1,0 +1,95 @@
+# 多模型配置
+# 每个模型定义: provider, model_id, api_key_env, base_url_env, 用途标签
+
+models:
+  # === OpenCode Go ===
+  opencode-go/deepseek-v4-flash:
+    provider: opencode-go
+    model_id: deepseek-v4-flash
+    description: "OpenCode Go - DeepSeek V4 Flash"
+    tags: [general, chinese, coding, research, fast]
+
+  # === Mimo (小米) ===
+  mimo/mimo-v2.5-pro:
+    provider: mimo
+    model_id: mimo-v2.5-pro
+    description: "小米 MiMo v2.5 Pro — 最强版本"
+    tags: [general, chinese, coding, research]
+
+  mimo/mimo-v2.5:
+    provider: mimo
+    model_id: mimo-v2.5
+    description: "小米 MiMo v2.5 — 标准版本"
+    tags: [general, chinese]
+
+  mimo/mimo-v2-pro:
+    provider: mimo
+    model_id: mimo-v2-pro
+    description: "小米 MiMo v2 Pro"
+    tags: [general, chinese]
+
+  mimo/mimo-v2-omni:
+    provider: mimo
+    model_id: mimo-v2-omni
+    description: "小米 MiMo v2 Omni — 多模态"
+    tags: [general, multimodal]
+
+  # === OpenAI ===
+  openai/gpt-4o:
+    provider: openai
+    model_id: gpt-4o
+    description: "OpenAI GPT-4o — 最强综合能力"
+    tags: [general, research, coding]
+
+  openai/gpt-4o-mini:
+    provider: openai
+    model_id: gpt-4o-mini
+    description: "OpenAI GPT-4o-mini — 性价比之选"
+    tags: [general, daily]
+
+  # === 通义千问 ===
+  qwen/qwen-plus:
+    provider: qwen
+    model_id: qwen-plus
+    description: "通义千问 Plus — 中文能力强"
+    tags: [general, chinese]
+
+  qwen/qwen-turbo:
+    provider: qwen
+    model_id: qwen-turbo
+    description: "通义千问 Turbo — 快速响应"
+    tags: [general, fast]
+
+  # === DeepSeek ===
+  deepseek/deepseek-chat:
+    provider: deepseek
+    model_id: deepseek-chat
+    description: "DeepSeek Chat — 推理能力强"
+    tags: [general, reasoning]
+
+  deepseek/deepseek-coder:
+    provider: deepseek
+    model_id: deepseek-coder
+    description: "DeepSeek Coder — 代码专精"
+    tags: [coding, debug]
+
+  # === Ollama 本地 ===
+  ollama/qwen2.5:7b:
+    provider: ollama
+    model_id: qwen2.5:7b
+    description: "本地 Qwen 2.5 7B — 免费、隐私"
+    tags: [general, local, offline]
+
+  ollama/llama3.1:8b:
+    provider: ollama
+    model_id: llama3.1:8b
+    description: "本地 Llama 3.1 8B — 英文能力强"
+    tags: [general, local, offline]
+
+# 任务路由规则：不同任务类型优先使用不同模型
+routing:
+  coding: opencode-go/deepseek-v4-flash
+  research: opencode-go/deepseek-v4-flash
+  general: opencode-go/deepseek-v4-flash
+  chinese: opencode-go/deepseek-v4-flash
+  fast: opencode-go/deepseek-v4-flash

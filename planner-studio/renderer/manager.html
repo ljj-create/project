@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Planner Studio - 管理</title>
+  <link rel="stylesheet" href="manager.css">
+</head>
+<body>
+  <header class="mgr-header">
+    <h1>Planner Studio</h1>
+    <span id="today" class="mgr-today"></span>
+  </header>
+
+  <main class="mgr-main">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>未来任务</h2>
+        <button id="clear-overdue-btn" class="link-btn" title="删除所有已过期的任务">清除已过期</button>
+      </div>
+      <form id="task-form" class="add-row">
+        <input id="task-title" type="text" placeholder="任务名称" required>
+        <input id="task-due" type="datetime-local" required>
+        <button type="submit">添加</button>
+      </form>
+      <div id="task-list" class="task-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>今日待办</h2>
+        <span id="today-progress" class="mini-progress"></span>
+      </div>
+      <form id="todo-form" class="add-row">
+        <input id="todo-input" type="text" placeholder="添加今日待办" required>
+        <select id="todo-priority" title="优先级">
+          <option value="high">高</option>
+          <option value="medium" selected>中</option>
+          <option value="low">低</option>
+        </select>
+        <select id="todo-repeat" title="重复">
+          <option value="none" selected>不重复</option>
+          <option value="daily">每天</option>
+          <option value="workdays">工作日</option>
+          <option value="weekly">每周一</option>
+        </select>
+        <button type="submit">添加</button>
+      </form>
+      <ul id="todo-list" class="todo-list"></ul>
+    </section>
+
+    <section class="panel">
+      <h2>统计</h2>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div id="stat-today" class="stat-num">-</div>
+          <div class="stat-label">今日完成</div>
+        </div>
+        <div class="stat-card">
+          <div id="stat-week" class="stat-num">-</div>
+          <div class="stat-label">本周完成率</div>
+        </div>
+        <div class="stat-card">
+          <div id="stat-streak" class="stat-num">-</div>
+          <div class="stat-label">连续完成天数</div>
+        </div>
+      </div>
+      <div id="week-chart" class="week-chart"></div>
+    </section>
+
+    <section class="panel">
+      <h2>设置</h2>
+      <label class="setting-row">
+        <span>主题</span>
+        <select id="setting-theme">
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span>任务到期提醒</span>
+        <input id="setting-notify" type="checkbox">
+      </label>
+      <label class="setting-row">
+        <span>开机自启动</span>
+        <input id="setting-autolaunch" type="checkbox">
+      </label>
+      <div class="setting-row">
+        <span>数据备份</span>
+        <div class="btn-group">
+          <button id="backup-export-btn" class="mini-btn">导出</button>
+          <button id="backup-import-btn" class="mini-btn">导入</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel calendar-panel">
+      <div class="panel-head">
+        <h2>日历</h2>
+        <div class="cal-nav">
+          <button id="cal-prev" class="mini-btn">‹</button>
+          <span id="cal-title" class="cal-title"></span>
+          <button id="cal-next" class="mini-btn">›</button>
+        </div>
+      </div>
+      <div class="cal-body">
+        <div class="cal-left">
+          <div class="cal-weekdays">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+        <div class="cal-day-detail">
+          <div id="cal-day-title" class="cal-day-title"></div>
+          <ul id="cal-day-todos" class="todo-list"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="manager.js"></script>
+</body>
+</html>

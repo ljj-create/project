@@ -1,0 +1,76 @@
+model:
+  clip_arch: "ViT-B-16"
+  clip_pretrained: "openai"
+  feature_dim: 512
+  frame_sample_interval: 16
+  freeze_clip: true
+
+progressive_learning:
+  K: 4
+  T: 16
+  omega: 2.0
+
+training:
+  ucf_crime:
+    lambda1: 1.0
+    lambda2: 1.0
+  xd_violence:
+    lambda1: 0.0001
+    lambda2: 1.0
+  optimizer: "adamw"
+  learning_rate: 0.00001
+  weight_decay: 0.01
+  batch_size: 64
+  num_epochs: 10
+  eval_interval: 1
+  device: "cuda"
+
+datasets:
+  ucf_crime:
+    num_classes: 14
+    anomaly_classes: [
+      "RoadAccidents", "Abuse", "Assault", "Burglary",
+      "Explosion", "Fighting", "Robbery", "Shooting",
+      "Shoplifting", "Stealing", "Vandalism", "Arrest", "Arson"
+    ]
+    normal_class: "Normal"
+  xd_violence:
+    num_classes: 7
+    anomaly_classes: [
+      "Shooting", "Riot", "Abuse", "CarAccidents",
+      "Explosion", "Fighting"
+    ]
+    normal_class: "Normal"
+
+text_prompts:
+  ucf_crime:
+    normal: "Normal scene, no abnormal events"
+    anomaly: "Anomalous event in surveillance video"
+    categories:
+      RoadAccidents: "Road accident, car crash, traffic collision"
+      Abuse: "Physical abuse, domestic violence, person being harmed"
+      Assault: "Assault, physical attack, violent confrontation"
+      Burglary: "Burglary, breaking and entering, theft from building"
+      Explosion: "Explosion, blast, detonation, fireball"
+      Fighting: "Fighting, brawl, multiple people fighting violently"
+      Robbery: "Robbery, armed robbery, theft with threat"
+      Shooting: "Shooting, gunfire, person firing weapon"
+      Shoplifting: "Shoplifting, stealing from store, theft in shop"
+      Stealing: "Stealing, theft, taking property without permission"
+      Vandalism: "Vandalism, property damage, graffiti, destruction"
+      Arrest: "Arrest, police detention, person being taken into custody"
+      Arson: "Arson, intentional fire setting, burning property"
+  xd_violence:
+    normal: "Normal scene, no violent events"
+    anomaly: "Violent event occurring in video"
+    categories:
+      Shooting: "Shooting, gunfire, person shooting with firearm"
+      Riot: "Riot, civil unrest, violent crowd disturbance"
+      Abuse: "Physical abuse, violent assault, person being violently harmed"
+      CarAccidents: "Car accident, vehicle crash, traffic collision"
+      Explosion: "Explosion, blast, detonation, violent explosion"
+      Fighting: "Fighting, violent brawl, physical combat"
+
+evaluation:
+  iou_thresholds: [0.1, 0.2, 0.3, 0.4, 0.5]
+  inference_threshold: 0.5
