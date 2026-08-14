@@ -169,7 +169,7 @@ def create_app():
     async def list_models():
         """列出可用模型"""
         models = llm_router.list_models()
-        return JSONResponse(content={"models": models})
+        return JSONResponse(content={"models": models, "default": settings.default_model})
 
     @app.get("/api/skills")
     async def list_skills():

@@ -256,19 +256,32 @@
       const r = await fetch('/api/models');
       const data = await r.json();
       const models = data.models || [];
+      const def = data.default || '';
       modelSelect.innerHTML = '';
-      for (const m of models) {
+      let defIdx = 0;
+      for (let i = 0; i < models.length; i++) {
         const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
+        opt.value = models[i];
+        opt.textContent = models[i];
+        if (models[i] === def) defIdx = i;
         modelSelect.appendChild(opt);
       }
-      if (models.length) modelSelect.selectedIndex = 0;
+      modelSelect.selectedIndex = defIdx;
       setStatus(true);
     } catch (e) {
       setStatus(false);
     }
   }
+
+  async function checkHealth() {
+    try {
+      const r = await fetch('/api/health');
+      setStatus(r.ok);
+    } catch (e) {
+      setStatus(false);
+    }
+  }
+  setInterval(checkHealth, 10000);
 
   function setStatus(online) {
     statusEl.className = online ? 'status online' : 'status offline';
@@ -279,6 +292,60 @@
     return modelSelect.value || '';
   }
 
+  async function sendStream(text, bubble) {
+    const r = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: 'desktop_user', message: text, model: currentModel() })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || ('请求失败: HTTP ' + r.status));
+    }
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let content = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const events = buf.split('\n\n');
+      buf = events.pop();
+      for (const ev of events) {
+        for (const line of ev.split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          const payload = line.slice(5).trim();
+          if (payload === '[DONE]') { cursor.remove(); continue; }
+          try {
+            const obj = JSON.parse(payload);
+            if (obj.error) throw new Error(obj.error);
+            content += obj.chunk || '';
+          } catch (e) { cursor.remove(); throw e; }
+        }
+      }
+      bubble.innerHTML = renderMd(content) + (cursor.outerHTML || '');
+      main.scrollTop = main.scrollHeight;
+    }
+    bubble.innerHTML = content ? renderMd(content) : '<i>（无内容返回）</i>';
+  }
+
+  async function sendFallback(text, bubble) {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: 'desktop_user', message: text, model: currentModel() })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error || ('请求失败: HTTP ' + r.status));
+    }
+    const data = await r.json();
+    bubble.innerHTML = data.response ? renderMd(data.response) : '<i>（无内容返回）</i>';
+  }
+
   async function sendMessage() {
     const text = input.value.trim();
     if (!text || streaming) return;
@@ -287,48 +354,17 @@
     const bubble = addMessage('assistant', '');
     streaming = true;
     sendBtn.disabled = true;
-    let content = '';
-    const cursor = document.createElement('span');
-    cursor.className = 'cursor';
 
     try {
-      const r = await fetch('/api/chat/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: 'desktop_user', message: text, model: currentModel() })
-      });
-      if (!r.ok) {
-        const err = await r.json().catch(() => ({}));
-        throw new Error(err.error || ('请求失败: HTTP ' + r.status));
-      }
-      const reader = r.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const events = buf.split('\n\n');
-        buf = events.pop();
-        for (const ev of events) {
-          for (const line of ev.split('\n')) {
-            if (!line.startsWith('data:')) continue;
-            const payload = line.slice(5).trim();
-            if (payload === '[DONE]') { cursor.remove(); continue; }
-            try {
-              const obj = JSON.parse(payload);
-              content += obj.chunk || '';
-            } catch (e) { /* 忽略无法解析的块 */ }
-          }
-        }
-        bubble.innerHTML = renderMd(content) + (cursor.outerHTML || '');
-        main.scrollTop = main.scrollHeight;
-      }
-      bubble.innerHTML = content ? renderMd(content) : '<i>（无内容返回）</i>';
+      await sendStream(text, bubble);
     } catch (e) {
-      bubble.innerHTML = `<span style="color:var(--error)">❌ 出错了：${escapeHtml(e.message)}</span>`;
+      // 流式失败时回退到普通接口，保证对话可用
+      try {
+        await sendFallback(text, bubble);
+      } catch (e2) {
+        bubble.innerHTML = `<span style="color:var(--error)">❌ 出错了：${escapeHtml(e2.message)}</span>`;
+      }
     } finally {
-      cursor.remove();
       streaming = false;
       sendBtn.disabled = false;
       input.focus();
