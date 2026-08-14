@@ -31,12 +31,6 @@ class Settings(BaseSettings):
 
     default_model: str = "opencode-go/deepseek-v4-flash"
 
-    # --- 飞书 ---
-    feishu_app_id: str = ""
-    feishu_app_secret: str = ""
-    feishu_verification_token: str = ""
-    feishu_encrypt_key: str = ""
-
     # --- 知识库 ---
     knowledge_db_path: str = str(BASE_DIR / "storage" / "chromadb")
     embedding_model: str = "shibing624/text2vec-base-chinese"

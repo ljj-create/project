@@ -26,6 +26,7 @@ venv/
 # 运行数据 / 构建产物（可重新生成）
 # ============================================================
 cs-agent/storage/chromadb/
+cs-agent/storage/chroma_test*/
 cs-agent/storage/logs/
 cs-agent/storage/cs_agent.db
 fine-vad-reproduction/checkpoints/

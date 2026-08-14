@@ -1,9 +1,8 @@
 """
-CS-Agent 启动脚本
+CS-Agent 本地部署脚本
 
 用法:
-    python scripts/run.py              # 启动飞书机器人 + Web 服务
-    python scripts/run.py --web-only   # 仅启动 Web 服务（调试用）
+    python scripts/run.py              # 启动 Web 服务
     python scripts/run.py --init-db    # 初始化数据库
 """
 import sys
@@ -48,8 +47,6 @@ def create_app():
     from skills.file_qa import FileQASkill
     from skills.web_search import WebSearchSkill
     from core.agent import CSAgent
-    from bot.handlers import MessageHandler
-    from bot.feishu import FeishuBot
     from storage.database import Database
 
     app = FastAPI(title="CS-Agent", description="CS 硕士生智能体", version="1.0.0")
@@ -77,21 +74,12 @@ def create_app():
         model_name=settings.default_model,
     )
 
-    message_handler = MessageHandler(agent)
-    feishu_bot = FeishuBot(message_handler)
     db = Database()
 
     @app.on_event("startup")
     async def startup():
         await db.init()
         logger.info("CS-Agent 启动完成")
-
-    @app.post("/webhook/feishu")
-    async def feishu_webhook(request: Request):
-        """飞书 Webhook 端点"""
-        body = await request.json()
-        result = await feishu_bot.handle_webhook(body)
-        return JSONResponse(content=result)
 
     @app.post("/api/chat")
     async def chat(request: Request):

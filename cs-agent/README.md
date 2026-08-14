@@ -1,6 +1,6 @@
 # CS-Agent — 计算机科学硕博生智能体
 
-面向计算机科学与技术研究生的 AI 学术助手，集成知识库、代码执行、论文检索、文件解析、联网搜索与飞书机器人。整体架构参考 Codex / Claude Code 的 Agent 设计，将 **会话状态、工具运行时、执行循环、模型路由** 分层解耦，便于扩展和维护。
+面向计算机科学与技术研究生的 AI 学术助手，集成知识库、代码执行、论文检索、文件解析与联网搜索，以本地 Web 服务方式部署。整体架构参考 Codex / Claude Code 的 Agent 设计，将 **会话状态、工具运行时、执行循环、模型路由** 分层解耦，便于扩展和维护。
 
 ## 核心特性
 
@@ -9,7 +9,7 @@
 - RAG 知识库：算法、操作系统、网络、数据库、机器学习、科研方法、工程实践
 - 原生 Function Calling 工具循环：代码执行、论文检索、文件问答、联网搜索
 - 每用户独立会话状态，支持清空记忆与模型切换
-- FastAPI Web API + 飞书机器人消息卡片
+- FastAPI Web API 本地部署
 
 ## 统一 Agent 架构
 
@@ -46,7 +46,7 @@ LLMRouter -> OpenAILLM / QwenLLM / DeepSeekLLM / OllamaLLM / MimoLLM
 | 模型适配 | `llm/*.py` | OpenAI 兼容、Qwen、DeepSeek、Ollama、MiMo |
 | 工具实现 | `skills/*.py` | 具体 Skill 实现与注册表 |
 
-公共调用方（`bot/handlers.py`、`scripts/run.py`）只依赖 `CSAgent`，底层循环、工具和会话实现可以独立演进。
+公共调用方（`scripts/run.py`）只依赖 `CSAgent`，底层循环、工具和会话实现可以独立演进。
 
 ## 项目结构
 
@@ -65,7 +65,6 @@ cs-agent/
 ├── knowledge/       # RAG：loader、splitter、vectorstore、retriever
 │   └── docs/        # 内置 CS 知识文档
 ├── skills/          # code_executor、paper_search、file_qa、web_search
-├── bot/             # 飞书机器人与消息处理
 ├── storage/         # SQLite、ChromaDB、日志
 ├── scripts/         # 启动与知识库初始化脚本
 └── tests/           # 单元测试
@@ -110,7 +109,6 @@ python scripts/run.py
 
 - Web API：`http://localhost:8000`
 - API 文档：`http://localhost:8000/docs`
-- 飞书 Webhook：`http://localhost:8000/webhook/feishu`
 
 ### 5. 测试对话
 
@@ -146,13 +144,7 @@ MIMO_API_KEY=xxx
 MIMO_BASE_URL=https://token-plan-cn.xiaomimimo.com/anthropic
 ```
 
-飞书机器人内可切换模型：
-
-```text
-/model deepseek/deepseek-coder
-/model qwen/qwen-plus
-/models
-```
+API 请求示例（`model` 字段可选，默认用 `.env` 中的 `DEFAULT_MODEL`）：
 
 ## API 接口
 
@@ -162,7 +154,6 @@ MIMO_BASE_URL=https://token-plan-cn.xiaomimimo.com/anthropic
 | `/api/models` | GET | 列出可用模型 |
 | `/api/skills` | GET | 列出可用工具 |
 | `/api/health` | GET | 健康检查 |
-| `/webhook/feishu` | POST | 飞书 Webhook |
 
 对话请求示例：
 
@@ -200,7 +191,6 @@ pytest tests/ -v
 | 向量库 | ChromaDB |
 | 嵌入模型 | text2vec-base-chinese |
 | 数据库 | SQLite |
-| 飞书机器人 | lark 开放 API（httpx 直连） |
 
 ## License
 

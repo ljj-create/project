@@ -1,6 +1,6 @@
 """CSAgent facade.
 
-This module keeps the public CSAgent API used by the bot/scripts while the
+This module keeps the public CSAgent API used by the scripts while the
 execution details live in AgentLoop, AgentSession, ToolManager and
 ConversationMemory. The split follows the Codex / Claude Code separation of
 session state, tool runtime, and agent loop.
