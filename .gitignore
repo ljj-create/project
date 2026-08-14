@@ -21,7 +21,6 @@ venv/
 .idea/
 .opencode/
 .claude/
-!deepseek-harness/.claude/
 
 # ============================================================
 # 运行数据 / 构建产物（可重新生成）
@@ -33,8 +32,6 @@ cs-agent/storage/cs_agent.db
 fine-vad-reproduction/checkpoints/
 fine-vad-reproduction/outputs/
 fine-vad-reproduction/models/
-planner-studio/node_modules/
-planner-studio/dist/
 
 # 日志
 *.log
