@@ -2,9 +2,10 @@
 CS-Agent 本地部署脚本
 
 用法:
-    python scripts/run.py              # 启动 Web 服务
+    python scripts/run.py              # 启动 Web 服务（含中文聊天界面）
     python scripts/run.py --init-db    # 初始化数据库
 """
+import json
 import sys
 import asyncio
 import argparse
@@ -15,6 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from loguru import logger
 from config.settings import settings
+
+WEBUI_DIR = Path(__file__).resolve().parent.parent / "webui"
 
 
 def setup_logging():
@@ -36,7 +39,7 @@ def setup_logging():
 def create_app():
     """创建 FastAPI 应用"""
     from fastapi import FastAPI, Request
-    from fastapi.responses import JSONResponse
+    from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 
     from llm.router import LLMRouter
     from knowledge.vectorstore import VectorStore
@@ -81,6 +84,14 @@ def create_app():
         await db.init()
         logger.info("CS-Agent 启动完成")
 
+    @app.get("/")
+    async def index():
+        """中文聊天界面"""
+        index_path = WEBUI_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+        return JSONResponse(content={"message": "CS-Agent 服务运行中，请访问 /docs 查看接口文档"})
+
     @app.post("/api/chat")
     async def chat(request: Request):
         """直接对话 API（用于调试）"""
@@ -106,6 +117,53 @@ def create_app():
         except Exception as e:
             logger.error(f"对话失败: {e}")
             return JSONResponse(content={"error": str(e)}, status_code=500)
+
+    @app.post("/api/chat/stream")
+    async def chat_stream(request: Request):
+        """流式对话接口（SSE 格式，供聊天界面使用）"""
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(content={"error": "请求体不是有效的 JSON"}, status_code=400)
+
+        user_id = body.get("user_id", "api_user")
+        message = body.get("message", "")
+        model = body.get("model")
+
+        if not message:
+            return JSONResponse(content={"error": "message 不能为空"}, status_code=400)
+
+        async def event_generator():
+            try:
+                async for chunk in agent.chat_stream(
+                    user_message=message,
+                    user_id=user_id,
+                    model_name=model,
+                ):
+                    yield f"data: {json.dumps({'chunk': chunk}, ensure_ascii=False)}\n\n"
+                yield "data: [DONE]\n\n"
+            except Exception as e:
+                logger.error(f"流式对话失败: {e}")
+                yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.post("/api/chat/clear")
+    async def clear_chat(request: Request):
+        """清空指定用户的对话历史"""
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(content={"error": "请求体不是有效的 JSON"}, status_code=400)
+
+        user_id = body.get("user_id", "api_user")
+        agent.clear_memory(user_id)
+        return JSONResponse(content={"status": "ok", "message": "对话历史已清空"})
 
     @app.get("/api/models")
     async def list_models():

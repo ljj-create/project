@@ -101,12 +101,25 @@ python scripts/init_knowledge.py
 
 ### 4. 启动服务
 
+**方式一：桌面端（推荐）**
+
+双击 `启动桌面端.bat`，或运行：
+
+```bash
+python desktop_app.py
+```
+
+会弹出桌面聊天窗口（中文界面），自动启动本地服务。
+
+**方式二：浏览器访问**
+
 ```bash
 python scripts/run.py
 ```
 
 启动后：
 
+- 中文聊天界面：`http://localhost:8000`
 - Web API：`http://localhost:8000`
 - API 文档：`http://localhost:8000/docs`
 
@@ -150,7 +163,10 @@ API 请求示例（`model` 字段可选，默认用 `.env` 中的 `DEFAULT_MODEL
 
 | 接口 | 方法 | 说明 |
 |---|---|---|
+| `/` | GET | 中文聊天界面 |
 | `/api/chat` | POST | 对话接口 |
+| `/api/chat/stream` | POST | 流式对话接口（SSE） |
+| `/api/chat/clear` | POST | 清空对话历史 |
 | `/api/models` | GET | 列出可用模型 |
 | `/api/skills` | GET | 列出可用工具 |
 | `/api/health` | GET | 健康检查 |
@@ -191,6 +207,7 @@ pytest tests/ -v
 | 向量库 | ChromaDB |
 | 嵌入模型 | text2vec-base-chinese |
 | 数据库 | SQLite |
+| 桌面端 | pywebview |
 
 ## License
 
